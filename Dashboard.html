@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TalentMarket Admin Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans">
+
+  <div class="max-w-5xl mx-auto p-6">
+    <header class="text-center mb-10">
+      <h1 class="text-3xl font-bold text-blue-700">Admin Dashboard</h1>
+      <p class="text-gray-600">View all user submissions from TalentMarket.ai</p>
+    </header>
+
+    <input
+      type="text"
+      id="search"
+      placeholder="Search by name or interest..."
+      class="w-full mb-6 p-3 rounded-lg border border-gray-300 shadow-sm"
+    />
+
+    <div class="overflow-x-auto">
+      <table class="min-w-full bg-white rounded-xl shadow-md overflow-hidden">
+        <thead class="bg-blue-600 text-white text-left">
+          <tr>
+            <th class="py-3 px-4">Name</th>
+            <th class="py-3 px-4">Email</th>
+            <th class="py-3 px-4">Interests</th>
+            <th class="py-3 px-4">Summary</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody" class="text-sm">
+          <!-- Rows will be added dynamically -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const SHEET_API = "https://api.sheetbest.com/sheets/b2363bfd-cb40-4131-8bd8-e724792a9cfa";
+
+    async function fetchData() {
+      const res = await fetch(SHEET_API);
+      const data = await res.json();
+      renderTable(data);
+    }
+
+    function renderTable(data) {
+      const tbody = document.getElementById("tableBody");
+      tbody.innerHTML = "";
+
+      data.forEach(row => {
+        const tr = document.createElement("tr");
+        tr.classList.add("border-b");
+
+        tr.innerHTML = `
+          <td class="py-2 px-4">${row.name || ""}</td>
+          <td class="py-2 px-4">${row.email || ""}</td>
+          <td class="py-2 px-4">${row.interests || ""}</td>
+          <td class="py-2 px-4 whitespace-pre-line">${row.profile || "—"}</td>
+        `;
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    document.getElementById("search").addEventListener("input", async function (e) {
+      const query = e.target.value.toLowerCase();
+      const res = await fetch(SHEET_API);
+      const data = await res.json();
+      const filtered = data.filter(
+        row => row.name?.toLowerCase().includes(query) || row.interests?.toLowerCase().includes(query)
+      );
+      renderTable(filtered);
+    });
+
+    fetchData();
+  </script>
+</body>
+</html>
