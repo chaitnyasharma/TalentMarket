@@ -55,31 +55,41 @@
   </div>
 
   <script>
-    document.getElementById("profileForm").addEventListener("submit", function (e) {
+    document.getElementById("profileForm").addEventListener("submit", async function (e) {
       e.preventDefault();
       const name = document.getElementById("name").value;
       const email = document.getElementById("email").value;
       const interests = Array.from(document.querySelectorAll("input[type='checkbox']:checked")).map(i => i.value);
 
+      // Display profile info
       const summary = generateProfile(interests);
-
       document.getElementById("displayName").textContent = `${name}'s AI-Powered Uniqueness Profile`;
       document.getElementById("displayEmail").textContent = email;
       document.getElementById("displayInterests").textContent = interests.join(", ");
       document.getElementById("generatedProfile").innerHTML = `<p>${summary}</p>`;
       document.getElementById("profileSection").classList.remove("hidden");
+
+      // Send data to Google Sheet via Sheet.best
+      try {
+        await fetch("https://api.sheetbest.com/sheets/b2363bfd-cb40-4131-8bd8-e724792a9cfa", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, email, interests: interests.join(", ") })
+        });
+        console.log("Submitted to Google Sheet");
+      } catch (error) {
+        console.error("Error submitting to Google Sheet:", error);
+      }
     });
 
     function generateProfile(interests) {
       let profile = `You have a unique blend of skills. Based on your interests, here’s how you can create value:\n\n`;
-
       if (interests.includes("Design")) profile += "- Freelance design projects, UI/UX consulting.\n";
       if (interests.includes("Coding")) profile += "- Build web apps, SaaS tools, freelance coding gigs.\n";
       if (interests.includes("Writing")) profile += "- Write blogs, copywriting, newsletters, and ghostwriting.\n";
       if (interests.includes("Marketing")) profile += "- Launch campaigns, create viral content, or consult for startups.\n";
       if (interests.includes("Business")) profile += "- Start niche ventures, help others monetize skills.\n";
       if (interests.includes("Coaching")) profile += "- Offer courses, mentoring, or personal development coaching.\n";
-
       profile += "\nTurn your uniqueness into income. Start today.";
       return profile;
     }
@@ -87,7 +97,6 @@
     document.getElementById("downloadPdf").addEventListener("click", () => {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
-
       const name = document.getElementById("displayName").textContent;
       const email = document.getElementById("displayEmail").textContent;
       const interests = document.getElementById("displayInterests").textContent;
@@ -101,7 +110,6 @@ Interests: ${interests}
 Profile Summary:
 ${profileText}
 `;
-
       doc.setFont("Helvetica");
       doc.setFontSize(12);
       doc.text(content, 10, 20);
